@@ -5,10 +5,12 @@
 Reimplementação em Python do clássico jogo de adivinhar animais por árvore de
 decisão, conhecido nos anos 1970 e 1980 simplesmente como **ANIMAL**.
 
-O programa faz perguntas de sim/não, chega a um palpite e, quando erra, pede ao
-jogador o animal correto e uma pergunta que o distinga do palpite errado. Essa
-pergunta vira um nó novo na árvore: a cada partida perdida, o jogo fica um pouco
-melhor. A base de conhecimento é gravada em JSON e recarregada na próxima sessão.
+Toda partida começa pela mesma pergunta — *"É o Thor?"* — e só depois de um
+"não" o jogo desce a árvore de decisão. Dali em diante ele faz perguntas de
+sim/não, chega a um palpite e, quando erra, pede ao jogador o animal correto e
+uma pergunta que o distinga do palpite errado. Essa pergunta vira um nó novo na
+árvore: a cada partida perdida, o jogo fica um pouco melhor. A base de
+conhecimento é gravada em JSON e recarregada na próxima sessão.
 
 ## Como jogar
 
@@ -43,6 +45,7 @@ pergunta *"ele vive na água?"* separando **baleia** de **cachorro**.
 Pense em um animal. Eu tento adivinhar — e, quando erro, eu aprendo.
 
 Você pensou em um animal? (s/n) s
+É o Thor? (s/n) n
 Ele vive na água? (s/n) n
 É um(a) cachorro? (s/n) n
 Errei. Me ensine, então.
@@ -63,7 +66,13 @@ A base de conhecimento é uma **árvore binária**:
 - **folhas** (`Folha`) guardam um animal.
 
 Jogar é descer a árvore, escolhendo o ramo `sim` ou `nao` a cada resposta, até
-chegar a uma folha — o palpite. Aprender é substituir aquela folha por uma nova
+chegar a uma folha — o palpite.
+
+A pergunta de abertura *"É o Thor?"* (`PERGUNTA_DE_ABERTURA`, em `game.py`) fica
+deliberadamente **fora** da árvore: assim ela é sempre a primeira pergunta,
+qualquer que seja a base carregada do disco, e o aprendizado do jogo nunca a
+desloca nem a apaga. Responder "sim" encerra a partida ali, sem alterar a base.
+ Aprender é substituir aquela folha por uma nova
 `Pergunta` cujos ramos são o animal novo e o palpite errado:
 
 ```

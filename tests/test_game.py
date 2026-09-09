@@ -6,7 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from sardinha.game import Jogo, criar_jogo, interpretar_sim_nao
+from sardinha.game import (
+    PERGUNTA_DE_ABERTURA,
+    Jogo,
+    criar_jogo,
+    interpretar_sim_nao,
+)
 from sardinha.tree import Folha, No, Pergunta, animais, arvore_semente, carregar
 
 
@@ -58,8 +63,26 @@ def test_interpretar_resposta_desconhecida(texto: str) -> None:
     assert interpretar_sim_nao(texto) is None
 
 
+def test_partida_comeca_perguntando_se_e_o_thor() -> None:
+    jogo, console = montar_jogo(["n", "s", "s"])
+
+    jogo.jogar_partida()
+
+    assert PERGUNTA_DE_ABERTURA in console.perguntas[0]
+
+
+def test_sim_para_o_thor_encerra_a_partida_sem_tocar_na_arvore() -> None:
+    jogo, console = montar_jogo(["s"])
+
+    assert jogo.jogar_partida() is True
+    assert jogo.arvore == arvore_semente()
+    assert "Thor" in console.impresso
+    assert len(console.perguntas) == 1  # nenhuma pergunta da árvore foi feita
+
+
 def test_palpite_certo_nao_altera_a_arvore() -> None:
-    jogo, console = montar_jogo(["s", "s"])  # vive na água? sim -> baleia? sim
+    # é o Thor? não -> vive na água? sim -> baleia? sim
+    jogo, console = montar_jogo(["n", "s", "s"])
 
     assert jogo.jogar_partida() is True
     assert jogo.arvore == arvore_semente()
@@ -67,7 +90,7 @@ def test_palpite_certo_nao_altera_a_arvore() -> None:
 
 
 def test_palpite_errado_insere_novo_no() -> None:
-    jogo, _ = montar_jogo(["n", "n", "gato", "ele mia?", "s"])
+    jogo, _ = montar_jogo(["n", "n", "n", "gato", "ele mia?", "s"])
 
     assert jogo.jogar_partida() is False
     assert isinstance(jogo.arvore, Pergunta)
@@ -76,14 +99,16 @@ def test_palpite_errado_insere_novo_no() -> None:
 
 
 def test_resposta_invalida_e_reperguntada() -> None:
-    jogo, console = montar_jogo(["talvez", "s", "s"])
+    jogo, console = montar_jogo(["n", "talvez", "s", "s"])
 
     assert jogo.jogar_partida() is True
     assert "Não entendi" in console.impresso
 
 
 def test_animal_em_branco_e_reperguntado() -> None:
-    jogo, console = montar_jogo(["n", "n", "   ", "ornitorrinco", "ele bota ovo?", "s"])
+    jogo, console = montar_jogo(
+        ["n", "n", "n", "   ", "ornitorrinco", "ele bota ovo?", "s"]
+    )
 
     jogo.jogar_partida()
 
@@ -93,7 +118,7 @@ def test_animal_em_branco_e_reperguntado() -> None:
 
 def test_sessao_salva_a_base_apos_a_partida(tmp_path: Path) -> None:
     base = tmp_path / "animais.json"
-    jogo, _ = montar_jogo(["s", "n", "n", "gato", "ele mia?", "s", "n"], base=base)
+    jogo, _ = montar_jogo(["s", "n", "n", "n", "gato", "ele mia?", "s", "n"], base=base)
 
     jogo.executar()
 

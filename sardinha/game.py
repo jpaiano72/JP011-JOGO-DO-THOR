@@ -25,6 +25,7 @@ from sardinha.tree import (
 
 __all__ = [
     "Jogo",
+    "PERGUNTA_DE_ABERTURA",
     "criar_jogo",
     "ler_do_terminal",
     "escrever_no_terminal",
@@ -56,6 +57,16 @@ PIADA_FINAL: str = (
     "30 GOTO 10\n"
     "READY."
 )
+
+PERGUNTA_DE_ABERTURA: str = "É o Thor?"
+"""Pergunta fixa que abre toda partida, antes de percorrer a árvore.
+
+Fica fora da árvore de decisão de propósito: assim ela é sempre a primeira
+pergunta, qualquer que seja a base de conhecimento carregada do disco, e o
+aprendizado do jogo nunca a desloca nem a apaga.
+"""
+
+RESPOSTA_THOR: str = "Claro que é o Thor. Ele vem antes de qualquer animal."
 
 BANNER: str = (
     "*** JOGO DO THOR ***\n"
@@ -111,8 +122,14 @@ class Jogo:
     def jogar_partida(self) -> bool:
         """Joga uma partida e devolve ``True`` se o palpite estava certo.
 
-        A árvore do jogo é atualizada quando o palpite erra.
+        A partida começa sempre pela :data:`PERGUNTA_DE_ABERTURA`; só depois
+        de um "não" o jogo desce a árvore. A árvore é atualizada quando o
+        palpite erra.
         """
+        if self.perguntar_sim_nao(PERGUNTA_DE_ABERTURA):
+            self.dizer(RESPOSTA_THOR)
+            return True
+
         caminho: list[bool] = []
         no = self.arvore
         while isinstance(no, Pergunta):

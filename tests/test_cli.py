@@ -26,7 +26,7 @@ def test_partida_completa_pela_cli(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     base = tmp_path / "animais.json"
-    roteirizar(monkeypatch, ["s", "n", "n", "gato", "ele mia?", "s", "n"])
+    roteirizar(monkeypatch, ["s", "n", "n", "n", "gato", "ele mia?", "s", "n"])
 
     assert main(["--base", str(base)]) == 0
 
@@ -49,7 +49,7 @@ def test_interrupcao_salva_o_aprendizado(
 ) -> None:
     base = tmp_path / "animais.json"
     # A entrada acaba logo após o aprendizado: o jogo recebe EOFError.
-    roteirizar(monkeypatch, ["s", "n", "n", "gato", "ele mia?", "s"])
+    roteirizar(monkeypatch, ["s", "n", "n", "n", "gato", "ele mia?", "s"])
 
     assert main(["--base", str(base)]) == 130
 
