@@ -1,0 +1,42 @@
+# Byte-compiled / otimizados / DLLs
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribuição / empacotamento
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+share/python-wheels/
+MANIFEST
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Testes e cobertura
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.cache/
+
+# Ferramentas de tipagem e lint
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# Editores e sistema operacional
+.idea/
+.vscode/
+.DS_Store
+
+# Base de conhecimento gerada pelo jogo
+animais.json
