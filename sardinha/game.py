@@ -26,6 +26,8 @@ from sardinha.tree import (
 __all__ = [
     "Jogo",
     "criar_jogo",
+    "ler_do_terminal",
+    "escrever_no_terminal",
     "AFIRMATIVAS",
     "NEGATIVAS",
     "PIADA_FINAL",
@@ -34,6 +36,16 @@ __all__ = [
 
 Entrada = Callable[[str], str]
 Saida = Callable[[str], None]
+
+
+def ler_do_terminal(prompt: str) -> str:
+    """Entrada padrão do jogo (indireção para permitir substituição em testes)."""
+    return input(prompt)
+
+
+def escrever_no_terminal(mensagem: str = "") -> None:
+    """Saída padrão do jogo (indireção para permitir substituição em testes)."""
+    print(mensagem)
 
 AFIRMATIVAS: frozenset[str] = frozenset({"s", "sim", "y", "yes", "1", "claro", "sim!"})
 NEGATIVAS: frozenset[str] = frozenset({"n", "nao", "não", "no", "0", "nunca"})
@@ -69,8 +81,8 @@ class Jogo:
     """Conduz uma sessão do jogo sobre uma árvore de decisão."""
 
     arvore: No
-    entrada: Entrada = input
-    saida: Saida = print
+    entrada: Entrada = ler_do_terminal
+    saida: Saida = escrever_no_terminal
     caminho_arquivo: Path = field(default=CAMINHO_PADRAO)
 
     # -- utilidades de conversa -------------------------------------------
@@ -161,8 +173,8 @@ class Jogo:
 
 def criar_jogo(
     caminho_arquivo: Path = CAMINHO_PADRAO,
-    entrada: Entrada = input,
-    saida: Saida = print,
+    entrada: Entrada = ler_do_terminal,
+    saida: Saida = escrever_no_terminal,
 ) -> Jogo:
     """Carrega a base de conhecimento do disco e monta um jogo pronto."""
     return Jogo(
