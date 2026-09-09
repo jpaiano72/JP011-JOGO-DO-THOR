@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Callable
 
 from sardinha.tree import (
+    Arvore,
     CAMINHO_PADRAO,
     Folha,
-    No,
     Pergunta,
     aprender,
     carregar,
@@ -91,7 +91,7 @@ def interpretar_sim_nao(resposta: str) -> bool | None:
 class Jogo:
     """Conduz uma sessão do jogo sobre uma árvore de decisão."""
 
-    arvore: No
+    arvore: Arvore
     entrada: Entrada = ler_do_terminal
     saida: Saida = escrever_no_terminal
     caminho_arquivo: Path = field(default=CAMINHO_PADRAO)
@@ -130,6 +130,10 @@ class Jogo:
             self.dizer(RESPOSTA_THOR)
             return True
 
+        if self.arvore is None:
+            self._cadastrar_primeiro_animal()
+            return False
+
         caminho: list[bool] = []
         no = self.arvore
         while isinstance(no, Pergunta):
@@ -155,10 +159,17 @@ class Jogo:
         resposta_do_novo = self.perguntar_sim_nao(
             f"Para {animal_novo}, a resposta a essa pergunta é sim?"
         )
+        assert self.arvore is not None
         self.arvore = aprender(
             self.arvore, caminho, animal_novo, pergunta, resposta_do_novo
         )
         self.dizer(f"Aprendido. Agora conheço {contar_animais(self.arvore)} animais.")
+
+    def _cadastrar_primeiro_animal(self) -> None:
+        """Cadastra o primeiro animal quando a base ainda está vazia."""
+        animal = self.perguntar_texto("Em que animal você pensou?")
+        self.arvore = Folha(animal=animal)
+        self.dizer(f"Aprendido. Agora conheço {contar_animais(self.arvore)} animal.")
 
     # -- sessão ------------------------------------------------------------
 

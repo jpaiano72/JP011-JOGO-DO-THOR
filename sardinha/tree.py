@@ -16,6 +16,7 @@ __all__ = [
     "Folha",
     "Pergunta",
     "No",
+    "Arvore",
     "Caminho",
     "ArvoreInvalidaError",
     "arvore_semente",
@@ -56,17 +57,14 @@ class Pergunta:
 
 
 No: TypeAlias = Folha | Pergunta
+Arvore: TypeAlias = No | None
 Caminho: TypeAlias = Sequence[bool]
 """Sequência de respostas (``True`` = sim) que leva da raiz até um nó."""
 
 
-def arvore_semente() -> No:
-    """Árvore mínima usada quando ainda não existe base de conhecimento."""
-    return Pergunta(
-        texto="ele vive na água?",
-        sim=Folha(animal="baleia"),
-        nao=Folha(animal="cachorro"),
-    )
+def arvore_semente() -> Arvore:
+    """Base vazia usada quando ainda não existe conhecimento salvo."""
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -74,8 +72,10 @@ def arvore_semente() -> No:
 # --------------------------------------------------------------------------
 
 
-def para_dict(no: No) -> dict[str, Any]:
+def para_dict(no: Arvore) -> dict[str, Any]:
     """Converte a árvore em estruturas primitivas prontas para JSON."""
+    if no is None:
+        return {"tipo": "vazia"}
     match no:
         case Folha(animal=animal):
             return {"tipo": "folha", "animal": animal}
@@ -88,7 +88,7 @@ def para_dict(no: No) -> dict[str, Any]:
             }
 
 
-def de_dict(dados: Any) -> No:
+def de_dict(dados: Any) -> Arvore:
     """Reconstrói a árvore a partir de estruturas primitivas.
 
     Levanta :class:`ArvoreInvalidaError` para dados malformados.
@@ -97,6 +97,8 @@ def de_dict(dados: Any) -> No:
         raise ArvoreInvalidaError(f"esperava um objeto, recebi {type(dados).__name__}")
 
     tipo = dados.get("tipo")
+    if tipo == "vazia":
+        return None
     if tipo == "folha":
         animal = dados.get("animal")
         if not isinstance(animal, str):
@@ -112,7 +114,7 @@ def de_dict(dados: Any) -> No:
     raise ArvoreInvalidaError(f"tipo de nó desconhecido: {tipo!r}")
 
 
-def carregar(caminho: Path = CAMINHO_PADRAO) -> No:
+def carregar(caminho: Path = CAMINHO_PADRAO) -> Arvore:
     """Lê a árvore do arquivo JSON; devolve a semente se ele não existir."""
     try:
         conteudo = caminho.read_text(encoding="utf-8")
@@ -125,7 +127,7 @@ def carregar(caminho: Path = CAMINHO_PADRAO) -> No:
     return de_dict(dados)
 
 
-def salvar(no: No, caminho: Path = CAMINHO_PADRAO) -> None:
+def salvar(no: Arvore, caminho: Path = CAMINHO_PADRAO) -> None:
     """Grava a árvore no arquivo JSON, criando os diretórios necessários."""
     caminho.parent.mkdir(parents=True, exist_ok=True)
     texto = json.dumps(para_dict(no), ensure_ascii=False, indent=2)
@@ -221,11 +223,15 @@ def _folhas(no: No) -> Iterator[Folha]:
     yield from _folhas(no.nao)
 
 
-def animais(no: No) -> list[str]:
+def animais(no: Arvore) -> list[str]:
     """Lista, em ordem de percurso, os animais conhecidos pela árvore."""
+    if no is None:
+        return []
     return [folha.animal for folha in _folhas(no)]
 
 
-def contar_animais(no: No) -> int:
+def contar_animais(no: Arvore) -> int:
     """Quantidade de animais na base de conhecimento."""
+    if no is None:
+        return 0
     return sum(1 for _ in _folhas(no))

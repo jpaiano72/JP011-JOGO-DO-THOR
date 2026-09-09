@@ -64,7 +64,7 @@ def test_interpretar_resposta_desconhecida(texto: str) -> None:
 
 
 def test_partida_comeca_perguntando_se_e_o_thor() -> None:
-    jogo, console = montar_jogo(["n", "s", "s"])
+    jogo, console = montar_jogo(["n", "gato"])
 
     jogo.jogar_partida()
 
@@ -80,26 +80,27 @@ def test_sim_para_o_thor_encerra_a_partida_sem_tocar_na_arvore() -> None:
     assert len(console.perguntas) == 1  # nenhuma pergunta da árvore foi feita
 
 
-def test_palpite_certo_nao_altera_a_arvore() -> None:
-    # é o Thor? não -> vive na água? sim -> baleia? sim
-    jogo, console = montar_jogo(["n", "s", "s"])
+def test_primeiro_animal_e_cadastrado_com_a_base_vazia() -> None:
+    jogo, console = montar_jogo(["n", "gato"])
 
-    assert jogo.jogar_partida() is True
-    assert jogo.arvore == arvore_semente()
-    assert "Eu sabia" in console.impresso
+    assert jogo.jogar_partida() is False
+    assert jogo.arvore == Folha("gato")
+    assert "1 animal" in console.impresso
 
 
 def test_palpite_errado_insere_novo_no() -> None:
-    jogo, _ = montar_jogo(["n", "n", "n", "gato", "ele mia?", "s"])
+    arvore = Pergunta("vive na água?", sim=Folha("peixe"), nao=Folha("gato"))
+    jogo, _ = montar_jogo(["n", "n", "n", "tatu", "ele tem casco?", "s"], arvore=arvore)
 
     assert jogo.jogar_partida() is False
     assert isinstance(jogo.arvore, Pergunta)
-    assert jogo.arvore.nao == Pergunta("ele mia?", sim=Folha("gato"), nao=Folha("cachorro"))
-    assert animais(jogo.arvore) == ["baleia", "gato", "cachorro"]
+    assert jogo.arvore.nao == Pergunta("ele tem casco?", sim=Folha("tatu"), nao=Folha("gato"))
+    assert animais(jogo.arvore) == ["peixe", "tatu", "gato"]
 
 
 def test_resposta_invalida_e_reperguntada() -> None:
-    jogo, console = montar_jogo(["n", "talvez", "s", "s"])
+    arvore = Pergunta("vive na água?", sim=Folha("peixe"), nao=Folha("gato"))
+    jogo, console = montar_jogo(["n", "talvez", "s", "s"], arvore=arvore)
 
     assert jogo.jogar_partida() is True
     assert "Não entendi" in console.impresso
@@ -107,7 +108,7 @@ def test_resposta_invalida_e_reperguntada() -> None:
 
 def test_animal_em_branco_e_reperguntado() -> None:
     jogo, console = montar_jogo(
-        ["n", "n", "n", "   ", "ornitorrinco", "ele bota ovo?", "s"]
+        ["n", "   ", "ornitorrinco"]
     )
 
     jogo.jogar_partida()
@@ -118,12 +119,12 @@ def test_animal_em_branco_e_reperguntado() -> None:
 
 def test_sessao_salva_a_base_apos_a_partida(tmp_path: Path) -> None:
     base = tmp_path / "animais.json"
-    jogo, _ = montar_jogo(["s", "n", "n", "n", "gato", "ele mia?", "s", "n"], base=base)
+    jogo, _ = montar_jogo(["s", "n", "gato", "n"], base=base)
 
     jogo.executar()
 
     assert carregar(base) == jogo.arvore
-    assert animais(carregar(base)) == ["baleia", "gato", "cachorro"]
+    assert animais(carregar(base)) == ["gato"]
 
 
 def test_sessao_encerra_com_a_piada_creditando_o_thor(tmp_path: Path) -> None:

@@ -28,8 +28,8 @@ from sardinha.tree import (
 
 
 @pytest.fixture
-def semente() -> No:
-    return arvore_semente()
+def arvore_base() -> Pergunta:
+    return Pergunta("vive na água?", sim=Folha("peixe"), nao=Folha("gato"))
 
 
 # --------------------------------------------------------------------------
@@ -37,23 +37,19 @@ def semente() -> No:
 # --------------------------------------------------------------------------
 
 
-def test_semente_separa_baleia_de_cachorro(semente: No) -> None:
-    assert isinstance(semente, Pergunta)
-    assert semente.texto == "ele vive na água?"
-    assert semente.sim == Folha("baleia")
-    assert semente.nao == Folha("cachorro")
+def test_semente_e_vazia() -> None:
+    assert arvore_semente() is None
 
 
-def test_descer_escolhe_o_ramo_da_resposta(semente: No) -> None:
-    assert isinstance(semente, Pergunta)
-    assert descer(semente, True) == Folha("baleia")
-    assert descer(semente, False) == Folha("cachorro")
+def test_descer_escolhe_o_ramo_da_resposta(arvore_base: Pergunta) -> None:
+    assert descer(arvore_base, True) == Folha("peixe")
+    assert descer(arvore_base, False) == Folha("gato")
 
 
-def test_localizar_percorre_caminho_de_respostas(semente: No) -> None:
-    assert localizar(semente, []) is semente
-    assert localizar(semente, [True]) == Folha("baleia")
-    assert localizar(semente, [False]) == Folha("cachorro")
+def test_localizar_percorre_caminho_de_respostas(arvore_base: Pergunta) -> None:
+    assert localizar(arvore_base, []) is arvore_base
+    assert localizar(arvore_base, [True]) == Folha("peixe")
+    assert localizar(arvore_base, [False]) == Folha("gato")
 
 
 def test_localizar_em_arvore_profunda() -> None:
@@ -67,14 +63,14 @@ def test_localizar_em_arvore_profunda() -> None:
     assert localizar(arvore, [False]) == Folha("jacaré")
 
 
-def test_localizar_recusa_caminho_longo_demais(semente: No) -> None:
+def test_localizar_recusa_caminho_longo_demais(arvore_base: Pergunta) -> None:
     with pytest.raises(ValueError, match="caminho longo demais"):
-        localizar(semente, [True, True])
+        localizar(arvore_base, [True, True])
 
 
-def test_animais_lista_as_folhas_em_ordem(semente: No) -> None:
-    assert animais(semente) == ["baleia", "cachorro"]
-    assert contar_animais(semente) == 2
+def test_animais_lista_as_folhas_em_ordem(arvore_base: Pergunta) -> None:
+    assert animais(arvore_base) == ["peixe", "gato"]
+    assert contar_animais(arvore_base) == 2
 
 
 # --------------------------------------------------------------------------
@@ -83,46 +79,46 @@ def test_animais_lista_as_folhas_em_ordem(semente: No) -> None:
 
 
 def test_criar_no_coloca_animal_novo_no_ramo_sim() -> None:
-    no = criar_no("cachorro", "gato", "ele mia?", resposta_do_novo=True)
-    assert no == Pergunta("ele mia?", sim=Folha("gato"), nao=Folha("cachorro"))
+    no = criar_no("peixe", "gato", "ele mia?", resposta_do_novo=True)
+    assert no == Pergunta("ele mia?", sim=Folha("gato"), nao=Folha("peixe"))
 
 
 def test_criar_no_respeita_resposta_invertida() -> None:
-    no = criar_no("cachorro", "gato", "ele late?", resposta_do_novo=False)
-    assert no == Pergunta("ele late?", sim=Folha("cachorro"), nao=Folha("gato"))
+    no = criar_no("peixe", "gato", "ele nada?", resposta_do_novo=False)
+    assert no == Pergunta("ele nada?", sim=Folha("peixe"), nao=Folha("gato"))
 
 
-def test_aprender_substitui_a_folha_por_uma_pergunta(semente: No) -> None:
-    nova = aprender(semente, [False], "gato", "ele mia?")
+def test_aprender_substitui_a_folha_por_uma_pergunta(arvore_base: Pergunta) -> None:
+    nova = aprender(arvore_base, [False], "tatu", "ele tem casco?")
 
     assert isinstance(nova, Pergunta)
-    assert nova.nao == Pergunta("ele mia?", sim=Folha("gato"), nao=Folha("cachorro"))
-    assert nova.sim == Folha("baleia")
-    assert animais(nova) == ["baleia", "gato", "cachorro"]
+    assert nova.nao == Pergunta("ele tem casco?", sim=Folha("tatu"), nao=Folha("gato"))
+    assert nova.sim == Folha("peixe")
+    assert animais(nova) == ["peixe", "tatu", "gato"]
     assert contar_animais(nova) == 3
 
 
-def test_aprender_nao_modifica_a_arvore_original(semente: No) -> None:
-    aprender(semente, [False], "gato", "ele mia?")
-    assert animais(semente) == ["baleia", "cachorro"]
+def test_aprender_nao_modifica_a_arvore_original(arvore_base: Pergunta) -> None:
+    aprender(arvore_base, [False], "tatu", "ele tem casco?")
+    assert animais(arvore_base) == ["peixe", "gato"]
 
 
-def test_aprender_duas_vezes_aprofunda_o_mesmo_ramo(semente: No) -> None:
-    arvore = aprender(semente, [False], "gato", "ele mia?")
-    arvore = aprender(arvore, [False, False], "tatu", "ele tem casco?")
+def test_aprender_duas_vezes_aprofunda_o_mesmo_ramo(arvore_base: Pergunta) -> None:
+    arvore = aprender(arvore_base, [False], "tatu", "ele tem casco?")
+    arvore = aprender(arvore, [False, False], "coelho", "ele pula?")
 
-    assert animais(arvore) == ["baleia", "gato", "tatu", "cachorro"]
-    assert localizar(arvore, [False, False, True]) == Folha("tatu")
-    assert localizar(arvore, [False, False, False]) == Folha("cachorro")
+    assert animais(arvore) == ["peixe", "tatu", "coelho", "gato"]
+    assert localizar(arvore, [False, False, True]) == Folha("coelho")
+    assert localizar(arvore, [False, False, False]) == Folha("gato")
 
 
-def test_aprender_recusa_caminho_que_nao_termina_em_folha(semente: No) -> None:
+def test_aprender_recusa_caminho_que_nao_termina_em_folha(arvore_base: Pergunta) -> None:
     with pytest.raises(ValueError, match="não termina em uma folha"):
-        aprender(semente, [], "gato", "ele mia?")
+        aprender(arvore_base, [], "tatu", "ele tem casco?")
 
 
-def test_substituir_com_caminho_vazio_troca_a_raiz(semente: No) -> None:
-    assert substituir(semente, [], Folha("pardal")) == Folha("pardal")
+def test_substituir_com_caminho_vazio_troca_a_raiz(arvore_base: Pergunta) -> None:
+    assert substituir(arvore_base, [], Folha("pardal")) == Folha("pardal")
 
 
 # --------------------------------------------------------------------------
@@ -130,20 +126,20 @@ def test_substituir_com_caminho_vazio_troca_a_raiz(semente: No) -> None:
 # --------------------------------------------------------------------------
 
 
-def test_round_trip_de_dict_preserva_a_arvore(semente: No) -> None:
-    arvore = aprender(semente, [False], "gato", "ele mia?")
+def test_round_trip_de_dict_preserva_a_arvore(arvore_base: Pergunta) -> None:
+    arvore = aprender(arvore_base, [False], "tatu", "ele tem casco?")
     assert de_dict(para_dict(arvore)) == arvore
 
 
-def test_round_trip_passando_por_json(semente: No) -> None:
-    arvore = aprender(semente, [True], "tubarão", "ele tem barbatana dorsal?")
+def test_round_trip_passando_por_json(arvore_base: Pergunta) -> None:
+    arvore = aprender(arvore_base, [True], "tubarão", "ele tem barbatana dorsal?")
     texto = json.dumps(para_dict(arvore), ensure_ascii=False)
     assert de_dict(json.loads(texto)) == arvore
 
 
-def test_round_trip_em_arquivo(tmp_path: Path, semente: No) -> None:
+def test_round_trip_em_arquivo(tmp_path: Path, arvore_base: Pergunta) -> None:
     arquivo = tmp_path / "base" / "animais.json"
-    arvore = aprender(semente, [False], "gato", "ele mia?")
+    arvore = aprender(arvore_base, [False], "tatu", "ele tem casco?")
 
     salvar(arvore, arquivo)
 
@@ -169,7 +165,7 @@ def test_carregar_json_quebrado_levanta_erro(tmp_path: Path) -> None:
         {"tipo": "folha"},
         {"tipo": "pergunta", "texto": "voa?"},
         {"tipo": "pergunta", "texto": "voa?", "sim": {"tipo": "folha", "animal": "urubu"}},
-        "cachorro",
+        "animal sem estrutura",
     ],
 )
 def test_de_dict_recusa_dados_malformados(dados: object) -> None:
@@ -177,7 +173,7 @@ def test_de_dict_recusa_dados_malformados(dados: object) -> None:
         de_dict(dados)
 
 
-def test_json_gravado_preserva_acentos(tmp_path: Path, semente: No) -> None:
+def test_json_gravado_preserva_acentos(tmp_path: Path, arvore_base: Pergunta) -> None:
     arquivo = tmp_path / "animais.json"
-    salvar(semente, arquivo)
-    assert "água" in arquivo.read_text(encoding="utf-8")
+    salvar(Pergunta("ele é ágil?", sim=arvore_base.sim, nao=arvore_base.nao), arquivo)
+    assert "ágil" in arquivo.read_text(encoding="utf-8")

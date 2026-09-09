@@ -35,8 +35,9 @@ Para usar outro arquivo:
 sardinha --base ~/.local/share/sardinha/animais.json
 ```
 
-Se o arquivo não existir, o jogo começa com uma árvore semente mínima: a
-pergunta *"ele vive na água?"* separando **baleia** de **cachorro**.
+Se o arquivo não existir, o jogo começa sem animais cadastrados. Depois da
+pergunta inicial *"É o Thor?"*, a primeira resposta "não" pede diretamente o
+animal pensado e cria a primeira folha da árvore.
 
 ### Uma partida típica
 
@@ -46,13 +47,9 @@ Pense em um animal. Eu tento adivinhar — e, quando erro, eu aprendo.
 
 Você pensou em um animal? (s/n) s
 É o Thor? (s/n) n
-Ele vive na água? (s/n) n
-É um(a) cachorro? (s/n) n
 Errei. Me ensine, então.
 Em que animal você pensou? tatu
-Qual pergunta de sim/não separa tatu de cachorro? ele tem casco?
-Para tatu, a resposta a essa pergunta é sim? (s/n) s
-Aprendido. Agora conheço 3 animais.
+Aprendido. Agora conheço 1 animal.
 ```
 
 Responde-se com `s`/`sim` ou `n`/`não` (também valem `y`, `yes`, `no`, `1`, `0`).
